@@ -25,6 +25,10 @@ You can check the output produced by the staff-provided reference implementation
 
     java -cp "chocopy-ref.jar:target/assignment.jar" chocopy.ChocoPy --pass=r src/test/data/pa1/sample/expr_plus.py
 
+You can also test only one specific custom test case by running the following command:
+
+    java -cp "chocopy-ref.jar:target/assignment.jar" chocopy.ChocoPy --pass=s path/to/your/test.py
+
 Try this with another input file as well, such as `src/test/data/pa1/sample/coverage.py`, to see what happens when the results disagree.
 
 ## Assignment specifications
