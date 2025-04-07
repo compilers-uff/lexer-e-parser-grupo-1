@@ -196,7 +196,7 @@ precedence left MULTIPLY, DIVIDE, MOD;
 precedence left EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
 precedence left AND, OR;
 precedence left NOT;
-precedence left S, IN;
+precedence left IS, IN;
 
 /* The start symbol. */
 start with program;
