@@ -129,18 +129,18 @@ Dedent    = [ \t]+
   {IdentifierString}           { return symbol(ChocoPyTokens.ID_STRING, yytext()); }
 
   /* Definitions */
-  {VariableDefinitionOperator} { return symbol(ChocoPyTokens.VAR_DEF_OP); }
-  {ClassDefinition}           { return symbol(ChocoPyTokens.CLASS_DEF); }
-  {FunctionDefinition}        { return symbol(ChocoPyTokens.FUNC_DEF); }
+  {VariableDefinitionOperator} { return symbol(ChocoPyTokens.EQUAL); }
+  {ClassDefinition}            { return symbol(ChocoPyTokens.CLASS); }
+  {FunctionDefinition}         { return symbol(ChocoPyTokens.DEF); }
 
   /* Statements */
-  {IfStatement}               { return symbol(ChocoPyTokens.IF); }
-  {ElifStatement}             { return symbol(ChocoPyTokens.ELIF); }
-  {ElseStatement}             { return symbol(ChocoPyTokens.ELSE); }
-  {WhileStatement}            { return symbol(ChocoPyTokens.WHILE); }
-  {ForStatement}              { return symbol(ChocoPyTokens.FOR); }
-  {PassStatement}             { return symbol(ChocoPyTokens.PASS); }
-  {ReturnStatement}           { return symbol(ChocoPyTokens.RETURN); }
+  {IfStatement}                { return symbol(ChocoPyTokens.IF); }
+  {ElifStatement}              { return symbol(ChocoPyTokens.ELIF); }
+  {ElseStatement}              { return symbol(ChocoPyTokens.ELSE); }
+  {WhileStatement}             { return symbol(ChocoPyTokens.WHILE); }
+  {ForStatement}               { return symbol(ChocoPyTokens.FOR); }
+  {PassStatement}              { return symbol(ChocoPyTokens.PASS); }
+  {ReturnStatement}            { return symbol(ChocoPyTokens.RETURN); }
 
   /* Literals */
   {NoneLiteral}                { return symbol(ChocoPyTokens.NONE); }
@@ -150,11 +150,11 @@ Dedent    = [ \t]+
   {StringChar}                 { /* ignore */ }
 
   /* Logic Operators */
-  {InOperator}                { return symbol(ChocoPyTokens.IN); }
-  {NotOperator}               { return symbol(ChocoPyTokens.NOT); }
-  {AndOperator}               { return symbol(ChocoPyTokens.AND); }
-  {OrOperator}                { return symbol(ChocoPyTokens.OR); }
-  {IsOperator}                { return symbol(ChocoPyTokens.IS); }
+  {InOperator}                 { return symbol(ChocoPyTokens.IN); }
+  {NotOperator}                { return symbol(ChocoPyTokens.NOT); }
+  {AndOperator}                { return symbol(ChocoPyTokens.AND); }
+  {OrOperator}                 { return symbol(ChocoPyTokens.OR); }
+  {IsOperator}                 { return symbol(ChocoPyTokens.IS); }
 
   /* Arithmetic Operators */
   {PlusOperator}               { return symbol(ChocoPyTokens.PLUS); }
@@ -162,8 +162,8 @@ Dedent    = [ \t]+
   {MultiplyOperator}           { return symbol(ChocoPyTokens.MULTIPLY); }
   {DivideOperator}             { return symbol(ChocoPyTokens.DIVIDE); }
   {ModOperator}                { return symbol(ChocoPyTokens.MOD); }
-  {EqualOperator}              { return symbol(ChocoPyTokens.EQUAL); }
-  {NotEqualOperator}           { return symbol(ChocoPyTokens.NOT_EQUAL); }
+  {EqualOperator}              { return symbol(ChocoPyTokens.EQUALEQUAL); }
+  {NotEqualOperator}           { return symbol(ChocoPyTokens.NOTEQUAL); }
   {LessThanOrEqualOperator}    { return symbol(ChocoPyTokens.LTE); }
   {GreaterThanOrEqualOperator} { return symbol(ChocoPyTokens.GTE); }
   {LessThanOperator}           { return symbol(ChocoPyTokens.LT); }
@@ -173,10 +173,10 @@ Dedent    = [ \t]+
   {Dot}                        { return symbol(ChocoPyTokens.DOT); }
   {Colon}                      { return symbol(ChocoPyTokens.COLON); }
   {Arrow}                      { return symbol(ChocoPyTokens.ARROW); }
-  {LeftParenthesis}            { return symbol(ChocoPyTokens.L_PAREN); }
-  {RightParenthesis}           { return symbol(ChocoPyTokens.R_PAREN); }
-  {LeftBracket}                { return symbol(ChocoPyTokens.L_BRACKET); }
-  {RightBracket}               { return symbol(ChocoPyTokens.R_BRACKET); }
+  {LeftParenthesis}            { return symbol(ChocoPyTokens.LPAREN); }
+  {RightParenthesis}           { return symbol(ChocoPyTokens.RPAREN); }
+  {LeftBracket}                { return symbol(ChocoPyTokens.LBRACKET); }
+  {RightBracket}               { return symbol(ChocoPyTokens.RBRACKET); }
 
   /* Delimiters. */
   {WhiteSpace}                 { /* ignore */ }
@@ -185,7 +185,7 @@ Dedent    = [ \t]+
   {Dedent}                     { return symbol(ChocoPyTokens.DEDENT); }
 }
 
-<<EOF>>                       { return symbol(ChocoPyTokens.EOF); }
+<<EOF>>                        { return symbol(ChocoPyTokens.EOF); }
 
 /* Error fallback. */
-[^]                           { return symbol(ChocoPyTokens.UNRECOGNIZED); }
+[^]                            { return symbol(ChocoPyTokens.UNRECOGNIZED); }
