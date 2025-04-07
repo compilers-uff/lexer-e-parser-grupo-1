@@ -1,5 +1,6 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/4nHL7_6-)
 [![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=18897865&assignment_repo_type=AssignmentRepo)
+
 # CS 164: Programming Assignment 1
 
 [PA1 Specification]: https://drive.google.com/open?id=1oYcJ5iv7Wt8oZNS1bEfswAklbMxDtwqB
@@ -33,7 +34,7 @@ See the [PA1 specification][] on the course
 website for a detailed specification of the assignment.
 
 Refer to the [ChocoPy Specification][] on the CS164 web site
-for the specification of the ChocoPy language. 
+for the specification of the ChocoPy language.
 
 ## Receiving updates to this repository
 
@@ -45,11 +46,10 @@ To sync with updates upstream:
 
     git pull upstream master
 
-
 ## Submission writeup
 
-Team member 1: 
+Team member 1:
 
-Team member 2: 
+Team member 2:
 
 (Students should edit this section with their write-up)

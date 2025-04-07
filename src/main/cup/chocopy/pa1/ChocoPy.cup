@@ -142,9 +142,38 @@ action code {:
  * semantic value of type <type> for these symbols that may be referenced
  * in actions ( {: ... :} ).
  */
-terminal NEWLINE;
-terminal String PLUS; 
-terminal Integer NUMBER; 
+
+/* Keywords */
+terminal GLOBAL, NONLOCAL;
+
+/* Identifiers */
+terminal String ID;
+terminal String ID_STRING;
+
+/* Definitions */
+terminal EQUAL, CLASS, DEF;
+
+/* Statements */
+terminal IF, ELIF, ELSE, WHILE, FOR, PASS, RETURN;
+
+/* Literals */
+terminal NONE;
+terminal Boolean BOOLEAN;
+terminal Integer NUMBER;
+terminal String STRING;
+
+/* Logic Operators */
+terminal IN, NOT, AND, OR, IS;
+
+/* Arithmetic Operators */
+terminal PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE;
+
+/* Punctuation */
+terminal DOT, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
+
+/* Delimiters. */
+terminal NEWLINE, INDENT, DEDENT;
+
 /* Returned by the lexer for erroneous tokens.  Since it does not appear in
  * the grammar, it indicates a syntax error. */
 terminal UNRECOGNIZED;   
@@ -162,7 +191,12 @@ non terminal Expr              expr, binary_expr;
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
-precedence left PLUS;
+precedence left PLUS, MINUS;
+precedence left MULTIPLY, DIVIDE, MOD;
+precedence left EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
+precedence left AND, OR;
+precedence left NOT;
+precedence left IS, IN;
 
 /* The start symbol. */
 start with program;
