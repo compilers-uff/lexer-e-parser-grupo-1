@@ -144,17 +144,17 @@ action code {:
  */
 
 /* Keywords */
-terminal GLOBAL, NONLOCAL;
+terminal String GLOBAL, NONLOCAL;
 
 /* Identifiers */
 terminal String ID;
 terminal String ID_STRING;
 
 /* Definitions */
-terminal EQUAL, CLASS, DEF;
+terminal String EQUAL, CLASS, DEF;
 
 /* Statements */
-terminal IF, ELIF, ELSE, WHILE, FOR, PASS, RETURN;
+terminal String IF, ELIF, ELSE, WHILE, FOR, PASS, RETURN;
 
 /* Literals */
 terminal NONE;
@@ -163,13 +163,13 @@ terminal Integer NUMBER;
 terminal String STRING;
 
 /* Logic Operators */
-terminal IN, NOT, AND, OR, IS;
+terminal String IN, NOT, AND, OR, IS;
 
 /* Arithmetic Operators */
-terminal PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE;
+terminal String PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
 
 /* Punctuation */
-terminal DOT, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
+terminal String DOT, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
 
 /* Delimiters. */
 terminal NEWLINE, INDENT, DEDENT;

@@ -58,7 +58,7 @@ NonLocalKeyword = "nonlocal"
 
 /* Identifiers */
 Identifier = [a-zA-Z_][a-zA-Z0-9_]*
-IdentifierString = "\"" {StringChar}* "\"" /* ASK: What is this? */
+IdentifierString = "\"" {StringChar}* "\""
 
 /* Definitions */
 VariableDefinitionOperator = "="
@@ -114,7 +114,7 @@ RightBracket = "]"
 WhiteSpace = [ \t]
 NewLine  = \r|\n|\r\n
 Indent    = [ \t]+
-Dedent    = [ \t]+
+/* Dedent    = [ \t]+ */
 
 %%
 
@@ -182,7 +182,7 @@ Dedent    = [ \t]+
   {WhiteSpace}                 { /* ignore */ }
   {NewLine}                    { return symbol(ChocoPyTokens.NEWLINE); }
   {Indent}                     { return symbol(ChocoPyTokens.INDENT); }
-  {Dedent}                     { return symbol(ChocoPyTokens.DEDENT); }
+  /* {Dedent}                     { return symbol(ChocoPyTokens.DEDENT); } */
 }
 
 <<EOF>>                        { return symbol(ChocoPyTokens.EOF); }
