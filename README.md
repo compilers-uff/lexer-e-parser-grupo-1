@@ -48,8 +48,10 @@ To sync with updates upstream:
 
 ## Submission writeup
 
-Team member 1: 
+Team member 1: Lucca Sabbatini
 
-Team member 2: 
+Team member 2: Renato
+
+Team member 3: Sérgio
 
 (Students should edit this section with their write-up)
