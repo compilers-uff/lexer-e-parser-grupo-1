@@ -48,7 +48,7 @@ To sync with updates upstream:
 
 ## Submission writeup
 
-Team member 1: Lucca Sabbatini
+Team member 1: Lucca Sabbatini Reid
 
 Team member 2: Renato
 
