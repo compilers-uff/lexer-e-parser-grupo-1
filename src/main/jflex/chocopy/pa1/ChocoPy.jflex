@@ -58,7 +58,7 @@ NonLocalKeyword = "nonlocal"
 
 /* Identifiers */
 Identifier = [a-zA-Z_][a-zA-Z0-9_]*
-IdentifierString = "\"" {StringChar}* "\"" /* ASK: What is this? */
+IdentifierString = "\"" {StringChar}* "\""
 
 /* Definitions */
 VariableDefinitionOperator = "="
@@ -147,7 +147,6 @@ Dedent    = [ \t]+
   {BooleanLiteral}             { return symbol(ChocoPyTokens.BOOLEAN, Boolean.parseBoolean(yytext())); }
   {IntegerLiteral}             { return symbol(ChocoPyTokens.NUMBER, Integer.parseInt(yytext())); }
   {StringLiteral}              { return symbol(ChocoPyTokens.STRING, yytext()); }
-  {StringChar}                 { /* ignore */ }
 
   /* Logic Operators */
   {InOperator}                 { return symbol(ChocoPyTokens.IN); }
