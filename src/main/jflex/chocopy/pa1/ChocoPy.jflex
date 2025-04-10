@@ -114,7 +114,7 @@ RightBracket = "]"
 WhiteSpace = [ \t]
 NewLine  = \r|\n|\r\n
 Indent    = [ \t]+
-/* Dedent    = [ \t]+ */
+Dedent    = [ \t]+
 
 %%
 
@@ -147,7 +147,6 @@ Indent    = [ \t]+
   {BooleanLiteral}             { return symbol(ChocoPyTokens.BOOLEAN, Boolean.parseBoolean(yytext())); }
   {IntegerLiteral}             { return symbol(ChocoPyTokens.NUMBER, Integer.parseInt(yytext())); }
   {StringLiteral}              { return symbol(ChocoPyTokens.STRING, yytext()); }
-  {StringChar}                 { /* ignore */ }
 
   /* Logic Operators */
   {InOperator}                 { return symbol(ChocoPyTokens.IN); }
@@ -182,7 +181,7 @@ Indent    = [ \t]+
   {WhiteSpace}                 { /* ignore */ }
   {NewLine}                    { return symbol(ChocoPyTokens.NEWLINE); }
   {Indent}                     { return symbol(ChocoPyTokens.INDENT); }
-  /* {Dedent}                     { return symbol(ChocoPyTokens.DEDENT); } */
+  {Dedent}                     { return symbol(ChocoPyTokens.DEDENT); }
 }
 
 <<EOF>>                        { return symbol(ChocoPyTokens.EOF); }

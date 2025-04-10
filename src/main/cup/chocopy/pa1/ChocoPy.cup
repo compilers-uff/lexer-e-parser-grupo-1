@@ -15,12 +15,21 @@ parser code {:
      *  node produced as a result. */
     public final Errors errors = new Errors(new ArrayList<>());
 
+    /* Debug Attribute */
+    public boolean debug = false;
+
+    /* Scanner Output */
+    public String tokens = "";
+
     /** Return the Program node that results from parsing the stream of
      *  tokens produced by lexical analysis.  In the case of syntax errors,
      *  the program may be empty, but will have error messages. */
     public Program parseProgram(boolean debug) {
         try {
             Symbol result = debug ? debug_parse() : parse();
+            if (debug) {
+                System.out.println("\n# SCANNER OUTPUT:\n" + tokens + "\n");
+            }
             if (result == null || !(result.value instanceof Program)) {
                 return new Program(new Location(0, 0), new Location(0, 0),
                                    new ArrayList<Declaration>(),
@@ -41,6 +50,30 @@ parser code {:
     @Override
     public SymbolFactory getSymbolFactory() {
         return ((ChocoPyLexer) getScanner()).symbolFactory;
+    }
+
+    @Override
+    public Symbol parse() throws Exception {
+        this.debug = false;
+        return super.parse();
+    }
+
+    @Override
+    public Symbol debug_parse() throws Exception {
+        this.debug = true;
+        return super.debug_parse();
+    }
+
+    @Override
+    public Symbol scan() throws Exception {
+        Symbol sym = super.scan();
+        if (debug) {
+            Integer tokenId = sym.sym;
+            String tokenName = ChocoPyTokens.terminalNames[tokenId];
+            String token = sym.value == null ? tokenName : tokenName + "(" + sym.value.toString() + ")";
+            tokens += token + " ";         
+        }
+        return sym;
     }
 
     @Override
