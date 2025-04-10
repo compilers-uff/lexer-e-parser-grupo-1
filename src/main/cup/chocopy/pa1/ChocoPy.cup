@@ -71,6 +71,7 @@ parser code {:
             Integer tokenId = sym.sym;
             String tokenName = ChocoPyTokens.terminalNames[tokenId];
             String token = sym.value == null ? tokenName : tokenName + "(" + sym.value.toString() + ")";
+            token = token.replaceAll("\n", "\\\\n");
             tokens += token + " ";         
         }
         return sym;
