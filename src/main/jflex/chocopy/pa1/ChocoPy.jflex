@@ -1,5 +1,8 @@
 package chocopy.pa1;
+import java.util.*;
 import java_cup.runtime.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 %%
 
@@ -8,6 +11,8 @@ import java_cup.runtime.*;
 %unicode
 %line
 %column
+
+%states SCANLINE, SCANSTRING
 
 %class ChocoPyLexer
 %public
@@ -33,6 +38,14 @@ import java_cup.runtime.*;
     /** Producer of token-related values for the parser. */
     final ComplexSymbolFactory symbolFactory = new ComplexSymbolFactory();
 
+    /* Indentation Auxiliary Properties */
+    private Stack<Integer> indentStack = new Stack<Integer>(); { indentStack.push(0); } // Keeps track of indentation levels
+    private Queue<Symbol> indentBuffer = new LinkedList<Symbol>(); // Queue of symbols to be returned before a line is scanned
+
+    /* String Literals Auxiliary Properties */
+    private String currentString = ""; // String literal being built
+    private int currentStringLine = 0, currentStringColumn = 0; // Line and column of the string literal
+
     /** Return a terminal symbol of syntactic category TYPE and no
      *  semantic value at the current source location. */
     private Symbol symbol(int type) {
@@ -47,18 +60,58 @@ import java_cup.runtime.*;
             new ComplexSymbolFactory.Location(yyline + 1, yycolumn + yylength()),
             value);
     }
+   
+    /* Count the number of whole tabs (4 spaces = 1 tab) in a line. */
+    private int countIndent(String line) {
+      int count = 0;
 
+      // Iterate through the line and count spaces and tabs
+      for (int i = 0; i < line.length(); i++) {
+        char ch = line.charAt(i); // Get the character at the current index
+
+        if (ch == ' ') count++; // Adds 1 to the counter
+        else if (ch == '\t') count += 4 - (count % 4); // Adds the amount of remaining spaces to next tab (next multiple of 4) to the counter
+        else break; // Stop counting at first non-whitespace character
+      }
+
+      // Return number of whole tabs.
+      return count / 4;
+    }
+    
 %}
 
 /* Macros (regexes used in rules below) */
 
-/* Keywords */
-GlobalKeyword = "global"
-NonLocalKeyword = "nonlocal"
+/* Line Delimeters */
+WhiteSpace = [ \t]
+NewLine  = \r|\n|\r\n
+
+/* Line Structure */
+LogicLine = {WhiteSpace}* [^\r\n]*
+Comments = {WhiteSpace}* "#" [^\r\n]*
+BlankLine = {WhiteSpace}* {NewLine}
 
 /* Identifiers */
 Identifier = [a-zA-Z_][a-zA-Z0-9_]*
-IdentifierString = "\"" {StringChar}* "\""
+
+/* Keywords */
+GlobalKeyword = "global"
+NonLocalKeyword = "nonlocal"
+LambdaKeyword = "lambda"
+AsKeyword = "as"
+AssertKeyword = "assert"
+AwaitKeyword = "await"
+BreakKeyword = "break"
+ContinueKeyword = "continue" 
+DelKeyword = "del"
+ExceptKeyword = "except"
+FinallyKeyword = "finally"
+FromKeyword = "from"
+ImportKeyword = "import"
+RaiseKeyword = "raise"
+TryKeyword = "try"
+WithKeyword = "with"
+YieldKeyword = "yield"
 
 /* Definitions */
 VariableDefinitionOperator = "="
@@ -76,9 +129,12 @@ ReturnStatement = "return"
 
 /* Literals */
 NoneLiteral = "None"
-BooleanLiteral = "True" | "False"
+TrueLiteral = "True"
+FalseLiteral = "False"
 IntegerLiteral = 0 | [1-9][0-9]*
-StringLiteral = "\"" {StringChar}* "\""
+
+/* String Literals */
+StringDelimiter = "\""
 StringChar = [^"\\] | "\\" [^"\\]
 
 /* Logic Operators */
@@ -92,7 +148,7 @@ IsOperator = "is"
 PlusOperator = "+"
 MinusOperator = "-"
 MultiplyOperator = "*"
-DivideOperator = "//"
+DivideOperator = "//" | "/"
 ModOperator = "%"
 EqualOperator = "=="
 NotEqualOperator = "!="
@@ -101,8 +157,9 @@ GreaterThanOrEqualOperator = ">="
 LessThanOperator = "<"
 GreaterThanOperator = ">"
 
-/* Punctuation */
+/* Delimeters */
 Dot = "."
+Comma = ","
 Colon = ":"
 Arrow = "->"
 LeftParenthesis = "("
@@ -110,23 +167,73 @@ RightParenthesis = ")"
 LeftBracket = "["
 RightBracket = "]"
 
-/* Delimiters */
-WhiteSpace = [ \t]
-NewLine  = \r|\n|\r\n
-Indent    = [ \t]+
-Dedent    = [ \t]+
-
 %%
 
-
 <YYINITIAL> {
-  /* Keywords */
-  {GlobalKeyword}              { return symbol(ChocoPyTokens.GLOBAL); }
-  {NonLocalKeyword}            { return symbol(ChocoPyTokens.NONLOCAL); }
+  /* Line Structure */
+  {LogicLine}                 {
+    // Check if the Indentation Buffer is empty. If it is not, return the first symbol in the buffer until it is empty without consuming the line.
+    if (!indentBuffer.isEmpty()) {
+      yypushback(yylength());
+      return indentBuffer.poll();
+    }
+
+    int indent = countIndent(yytext()); // Count the number of whole tabs in the line
+    int top = indentStack.peek(); // Get the current indentation level
+
+    if (indent == top) { // If the indentation level is the same as the previous line, scan the line
+      yypushback(yylength());
+      yybegin(SCANLINE);
+    } else if (indent > top) { // If the indentation level is greater than the previous line, push a new indentation level and scan the line
+      indentStack.push(indent);
+      yypushback(yylength());
+      yybegin(SCANLINE);
+      return symbol(ChocoPyTokens.INDENT);
+    } else { // If the indentation level is less than the previous line, pop indentation levels until the current level is reached
+      while (indent < top) {
+        indentStack.pop();
+        indentBuffer.add(symbol(ChocoPyTokens.DEDENT)); // Add a DEDENT symbol to the buffer so that multiple tokens can be returned before the line is scanned
+      }
+      yypushback(yylength());
+    }
+  }
+
+  /* Comments */                                
+  {Comments}                  { /* ignore */ }
+
+  /* Blank */
+  {BlankLine}                 { /* ignore */ }
+}
+
+<SCANLINE> {
+  /* Delimiters */
+  {WhiteSpace}                 { /* ignore */ }
+  {NewLine}                    { yybegin(YYINITIAL); return symbol(ChocoPyTokens.NEWLINE); }
+
+  /* Line Structure */
+  {Comments}                   { /* ignore */ }
 
   /* Identifiers */
   {Identifier}                 { return symbol(ChocoPyTokens.ID, yytext()); }
-  {IdentifierString}           { return symbol(ChocoPyTokens.ID_STRING, yytext()); }
+
+  /* Keywords */
+  {GlobalKeyword}              { return symbol(ChocoPyTokens.GLOBAL); }
+  {NonLocalKeyword}            { return symbol(ChocoPyTokens.NONLOCAL); }
+  {LambdaKeyword}              { return symbol(ChocoPyTokens.LAMBDA); }
+  {AsKeyword}                  { return symbol(ChocoPyTokens.AS); }
+  {AssertKeyword}              { return symbol(ChocoPyTokens.ASSERT); }
+  {AwaitKeyword}               { return symbol(ChocoPyTokens.AWAIT); }
+  {BreakKeyword}               { return symbol(ChocoPyTokens.BREAK); }
+  {ContinueKeyword}            { return symbol(ChocoPyTokens.CONTINUE); }
+  {DelKeyword}                 { return symbol(ChocoPyTokens.DEL); }
+  {ExceptKeyword}              { return symbol(ChocoPyTokens.EXCEPT); }
+  {FinallyKeyword}             { return symbol(ChocoPyTokens.FINALLY); }
+  {FromKeyword}                { return symbol(ChocoPyTokens.FROM); }
+  {ImportKeyword}              { return symbol(ChocoPyTokens.IMPORT); }
+  {RaiseKeyword}               { return symbol(ChocoPyTokens.RAISE); }
+  {TryKeyword}                 { return symbol(ChocoPyTokens.TRY); }
+  {WithKeyword}                { return symbol(ChocoPyTokens.WITH); }
+  {YieldKeyword}               { return symbol(ChocoPyTokens.YIELD); }
 
   /* Definitions */
   {VariableDefinitionOperator} { return symbol(ChocoPyTokens.EQUAL); }
@@ -144,9 +251,12 @@ Dedent    = [ \t]+
 
   /* Literals */
   {NoneLiteral}                { return symbol(ChocoPyTokens.NONE); }
-  {BooleanLiteral}             { return symbol(ChocoPyTokens.BOOLEAN, Boolean.parseBoolean(yytext())); }
+  {TrueLiteral}                { return symbol(ChocoPyTokens.BOOLEAN, true); }
+  {FalseLiteral}               { return symbol(ChocoPyTokens.BOOLEAN, false); }
   {IntegerLiteral}             { return symbol(ChocoPyTokens.NUMBER, Integer.parseInt(yytext())); }
-  {StringLiteral}              { return symbol(ChocoPyTokens.STRING, yytext()); }
+
+  /* String Literals */
+  {StringDelimiter}            { currentString = ""; currentStringLine = yyline + 1; currentStringColumn = yycolumn + 1; yybegin(SCANSTRING); }
 
   /* Logic Operators */
   {InOperator}                 { return symbol(ChocoPyTokens.IN); }
@@ -168,20 +278,29 @@ Dedent    = [ \t]+
   {LessThanOperator}           { return symbol(ChocoPyTokens.LT); }
   {GreaterThanOperator}        { return symbol(ChocoPyTokens.GT); }
 
-  /* Punctuation */
+  /* Delimeters */
   {Dot}                        { return symbol(ChocoPyTokens.DOT); }
+  {Comma}                      { return symbol(ChocoPyTokens.COMMA); }
   {Colon}                      { return symbol(ChocoPyTokens.COLON); }
   {Arrow}                      { return symbol(ChocoPyTokens.ARROW); }
   {LeftParenthesis}            { return symbol(ChocoPyTokens.LPAREN); }
   {RightParenthesis}           { return symbol(ChocoPyTokens.RPAREN); }
   {LeftBracket}                { return symbol(ChocoPyTokens.LBRACKET); }
   {RightBracket}               { return symbol(ChocoPyTokens.RBRACKET); }
+}
 
-  /* Delimiters. */
-  {WhiteSpace}                 { /* ignore */ }
-  {NewLine}                    { return symbol(ChocoPyTokens.NEWLINE); }
-  {Indent}                     { return symbol(ChocoPyTokens.INDENT); }
-  {Dedent}                     { return symbol(ChocoPyTokens.DEDENT); }
+<SCANSTRING> {
+  {StringChar}                 { currentString += yytext(); }
+  {StringDelimiter}            { 
+    yybegin(SCANLINE);          
+    return symbolFactory.newSymbol(
+      ChocoPyTokens.terminalNames[ChocoPyTokens.STRING],
+      ChocoPyTokens.STRING,
+      new ComplexSymbolFactory.Location(currentStringLine, currentStringColumn),
+      new ComplexSymbolFactory.Location(yyline + 1, yycolumn + yylength()),
+      value
+    );
+  }
 }
 
 <<EOF>>                        { return symbol(ChocoPyTokens.EOF); }
