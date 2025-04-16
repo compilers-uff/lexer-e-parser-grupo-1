@@ -27,9 +27,12 @@ parser code {:
     public Program parseProgram(boolean debug) {
         try {
             Symbol result = debug ? debug_parse() : parse();
+
+            // If the scanner is in debug mode, print the scanned tokens
             if (debug) {
                 System.out.println("\n# SCANNER OUTPUT:\n" + tokens + "\n");
             }
+
             if (result == null || !(result.value instanceof Program)) {
                 return new Program(new Location(0, 0), new Location(0, 0),
                                    new ArrayList<Declaration>(),
@@ -53,20 +56,22 @@ parser code {:
     }
 
     @Override
-    public Symbol parse() throws Exception {
+    public Symbol parse() throws Exception { // Overridden to allow debugging of tokens
         this.debug = false;
         return super.parse();
     }
 
     @Override
-    public Symbol debug_parse() throws Exception {
+    public Symbol debug_parse() throws Exception { // Overridden to allow debugging of tokens
         this.debug = true;
         return super.debug_parse();
     }
 
     @Override
-    public Symbol scan() throws Exception {
+    public Symbol scan() throws Exception { // Overridden to allow debugging of tokens
         Symbol sym = super.scan();
+
+        // If the scanner is in debug mode, print the token
         if (debug) {
             Integer tokenId = sym.sym;
             String tokenName = ChocoPyTokens.terminalNames[tokenId];
@@ -74,6 +79,7 @@ parser code {:
             token = token.replaceAll("\n", "\\\\n");
             tokens += token + " ";         
         }
+
         return sym;
     }
 
@@ -177,12 +183,15 @@ action code {:
  * in actions ( {: ... :} ).
  */
 
-/* Keywords */
-terminal String GLOBAL, NONLOCAL;
+ /* Line Delimiters. */
+terminal NEWLINE, INDENT, DEDENT;
 
 /* Identifiers */
 terminal String ID;
 terminal String ID_STRING;
+
+/* Keywords */
+terminal String GLOBAL, NONLOCAL, LAMBDA, AS, ASSERT, AWAIT, BREAK, CONTINUE, DEL, EXCEPT, FINALLY, FROM, IMPORT, RAISE, TRY, WITH, YIELD;
 
 /* Definitions */
 terminal String EQUAL, CLASS, DEF;
@@ -194,6 +203,8 @@ terminal String IF, ELIF, ELSE, WHILE, FOR, PASS, RETURN;
 terminal NONE;
 terminal Boolean BOOLEAN;
 terminal Integer NUMBER;
+
+/* String Literals */
 terminal String STRING;
 
 /* Logic Operators */
@@ -203,10 +214,7 @@ terminal String IN, NOT, AND, OR, IS;
 terminal String PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
 
 /* Punctuation */
-terminal String DOT, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
-
-/* Delimiters. */
-terminal NEWLINE, INDENT, DEDENT;
+terminal String DOT, COMMA, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
 
 /* Returned by the lexer for erroneous tokens.  Since it does not appear in
  * the grammar, it indicates a syntax error. */
