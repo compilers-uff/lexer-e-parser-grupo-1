@@ -177,12 +177,15 @@ action code {:
  * in actions ( {: ... :} ).
  */
 
-/* Keywords */
-terminal String GLOBAL, NONLOCAL;
+ /* Line Delimiters. */
+terminal NEWLINE, INDENT, DEDENT;
 
 /* Identifiers */
 terminal String ID;
 terminal String ID_STRING;
+
+/* Keywords */
+terminal String GLOBAL, NONLOCAL;
 
 /* Definitions */
 terminal String EQUAL, CLASS, DEF;
@@ -194,6 +197,8 @@ terminal String IF, ELIF, ELSE, WHILE, FOR, PASS, RETURN;
 terminal NONE;
 terminal Boolean BOOLEAN;
 terminal Integer NUMBER;
+
+/* String Literals */
 terminal String STRING;
 
 /* Logic Operators */
@@ -203,10 +208,7 @@ terminal String IN, NOT, AND, OR, IS;
 terminal String PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
 
 /* Punctuation */
-terminal String DOT, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
-
-/* Delimiters. */
-terminal NEWLINE, INDENT, DEDENT;
+terminal String DOT, COMMA, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
 
 /* Returned by the lexer for erroneous tokens.  Since it does not appear in
  * the grammar, it indicates a syntax error. */
