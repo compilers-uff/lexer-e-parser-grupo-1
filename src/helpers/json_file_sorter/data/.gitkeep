@@ -1,0 +1,2 @@
+./json_file_sorter/data/*.json
+!./json_file_sorter/data/.gitkeep
