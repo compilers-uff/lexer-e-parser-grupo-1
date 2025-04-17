@@ -380,7 +380,7 @@ literal ::= NONE:n   {: RESULT = new NoneLiteral(nxleft, nxright); :}
 /* Expressions */
 expr ::= cexpr:cexpr                                 {: RESULT = cexpr; :}
        | binary_expr:be                              {: RESULT = be; :}
-       | expr:expr_1 IF expr:expr_2 ELSE expr:expr_3 {: RESULT = new IfExpr(expr_1xleft, expr_3xright, expr_1, expr_2, expr_3); :};
+       | expr:expr_1 IF expr:expr_2 ELSE expr:expr_3 {: RESULT = new IfExpr(expr_1xleft, expr_3xright, expr_2, expr_1, expr_3); :};
 
 cexpr ::= id:identifier                                       {: RESULT = identifier; :}
        | literal:literal                                      {: RESULT = literal; :}
