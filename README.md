@@ -48,8 +48,24 @@ To sync with updates upstream:
 
 ## Submission writeup
 
-Team member 1:
+Team member 1: Lucca Sabbatini
 
-Team member 2:
+Team member 2: Renato Montini
 
-(Students should edit this section with their write-up)
+Team member 3: Sérgio Ricardo
+
+Agradecimentos aos colegas de turma Isadora Verbicário, João Pedro Mateus e João Guilherme por terem tirado uma dúvida em relação a um problema que estávamos tendo.
+E ao Github Copilot por ter explicado porque um erro de compilação estava ocorrendo.
+
+Não sabemos ao certo quantas horas foram necessárias para a realização do trabalho. Mas começamos a trabalhar no dia 05/04 e trabalhamos no projeto praticamente todos os dias desde então. Usando uma média de aproximadamente 3h/dia x 14 dias, foram utilizadas no mínimo 42 horas de trabalho.
+
+- Questões:
+
+1. Para a emissão de INDENTS e DEDENTS, utilizamos uma pilha, inicializada em 0 (linha 178), que guarda o nível de identação do código, e funções para contar (linhas 65 - declaração da função, e 188 - chamada da função) e emitir os tokens (linha 191 - compara o nível de identação com o valor na pilha). Nome do arquivo: ChocoPy.jflex
+
+2. A nossa solução busca realizar exatamente o que é descrito na seção 3.1.5 (Identação) ao utilizar uma pilha para poder contar o nível de identação e ao emitir INDENT sempre que a identação é maior que o topo da pilha e emitir DEDENT enquanto o valor do topo for maior que o da identação da linha lida.
+
+
+3. Tivemos dois outros desafios além da identação. 
+O primeiro foi na definição dos símbolos terminais. Inicialmente não percebemos que a ordem da declaração deles era importante e por isso estávamos tendo problemas para compilar o código e sempre recebíamos avisos que alguns símbolos não eram alcançados nunca. Utilizamos o Github Copilot para nos explicar o erro e ele nos informou que a ordem importava, então alteramos a ordem da nossa declaração para que todos os símbolos pudessem ser alcançados. Arquivo ChocoPy.jflex, a partir da linha 210.
+O segundo desafio foi com a gramática. Tivemos algumas dificuldades em reproduzir a gramática da página 15 do manual de referência do ChocoPy até perceber que precisaríamos criar uns símbolos não terminais para conseguir refazer algumas regras. Arquivo ChocoPy.cup, a partir da linha 232 (block, elif_expression e else_expression, por exemplo).
