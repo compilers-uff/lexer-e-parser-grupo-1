@@ -39,7 +39,7 @@ import java.util.Iterator;
     final ComplexSymbolFactory symbolFactory = new ComplexSymbolFactory();
 
     /* Indentation Auxiliary Properties */
-    private Stack<Integer> indentStack = new Stack<Integer>(); { indentStack.push(0); } // Keeps track of indentation levels
+    private Stack<Integer> indentStack = new Stack<Integer>(); // Keeps track of indentation levels
     private Queue<Symbol> indentBuffer = new LinkedList<Symbol>(); // Queue of symbols to be returned before a line is scanned
 
     /* String Literals Auxiliary Properties */
@@ -171,9 +171,14 @@ RightBracket = "]"
 
 <YYINITIAL> {
   /* Line Structure */                             
-  {Comments}                  { /* ignore */ }
-  {BlankLine}                 { /* ignore */ }
-  {LogicLine}                 {
+  {Comments}  { /* ignore */ }
+  {BlankLine} { /* ignore */ }
+  {LogicLine} {
+    // Check if identStack is empty. If it is, push the initial indentation to the stack.
+    if (indentStack.isEmpty()) {
+      indentStack.push(0);
+    }
+
     // Check if the Indentation Buffer is empty. If it is not, return the first symbol in the buffer until it is empty without consuming the line.
     if (!indentBuffer.isEmpty()) {
       yypushback(yylength());
@@ -190,11 +195,11 @@ RightBracket = "]"
       indentStack.push(indent);
       yypushback(yylength());
       yybegin(SCANLINE);
-      return symbol(ChocoPyTokens.INDENT);
+      return symbol(ChocoPyTokens.INDENT, ""); // Add an INDENT symbol to the buffer so that multiple tokens can be returned before the line is scanned
     } else { // If the indentation level is less than the previous line, pop indentation levels until the current level is reached
-      while (indent < top) {
+      while (indent < top && indentStack.size() > 1) {
         indentStack.pop();
-        indentBuffer.add(symbol(ChocoPyTokens.DEDENT)); // Add a DEDENT symbol to the buffer so that multiple tokens can be returned before the line is scanned
+        indentBuffer.add(symbol(ChocoPyTokens.DEDENT, "")); // Add a DEDENT symbol to the buffer so that multiple tokens can be returned before the line is scanned
       }
       yypushback(yylength());
     }
@@ -210,8 +215,8 @@ RightBracket = "]"
   /* Literals */
   {IntegerLiteral}             { return symbol(ChocoPyTokens.NUMBER, Integer.parseInt(yytext())); }
   {StringDelimiter}            { currentString = ""; currentStringLine = yyline + 1; currentStringColumn = yycolumn + 1; yybegin(SCANSTRING); }
-  {TrueLiteral}                { return symbol(ChocoPyTokens.BOOLEAN, true); }
-  {FalseLiteral}               { return symbol(ChocoPyTokens.BOOLEAN, false); }
+  {TrueLiteral}                { return symbol(ChocoPyTokens.TRUE); }
+  {FalseLiteral}               { return symbol(ChocoPyTokens.FALSE); }
   {NoneLiteral}                { return symbol(ChocoPyTokens.NONE); }
 
   /* Keywords */
