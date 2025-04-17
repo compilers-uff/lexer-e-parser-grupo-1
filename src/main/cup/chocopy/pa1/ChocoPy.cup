@@ -188,7 +188,6 @@ terminal NEWLINE, INDENT, DEDENT;
 
 /* Identifiers */
 terminal String ID;
-terminal String ID_STRING;
 
 /* Keywords */
 terminal String GLOBAL, NONLOCAL, LAMBDA, AS, ASSERT, AWAIT, BREAK, CONTINUE, DEL, EXCEPT, FINALLY, FROM, IMPORT, RAISE, TRY, WITH, YIELD;
@@ -211,7 +210,7 @@ terminal String STRING;
 terminal String IN, NOT, AND, OR, IS;
 
 /* Arithmetic Operators */
-terminal String PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
+terminal String PLUS, MINUS, MULTIPLY, DIVIDE, MOD, EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT, UMINUS;
 
 /* Punctuation */
 terminal String DOT, COMMA, COLON, ARROW, LPAREN, RPAREN, LBRACKET, RBRACKET;
@@ -233,12 +232,15 @@ non terminal Expr              expr, binary_expr;
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
+precedence left OR;
+precedence left AND;
+precedence left NOT;
+precedence nonassoc EQUALEQUAL, NOTEQUAL, LT, GT, LTE, GTE, IS;
 precedence left PLUS, MINUS;
 precedence left MULTIPLY, DIVIDE, MOD;
-precedence left EQUALEQUAL, NOTEQUAL, LTE, GTE, LT, GT;
-precedence left AND, OR;
-precedence left NOT;
-precedence left IS, IN;
+precedence left UMINUS;
+precedence left DOT, COMMA, LBRACKET, RBRACKET;
+precedence right IF, ELIF, ELSE;
 
 /* The start symbol. */
 start with program;
