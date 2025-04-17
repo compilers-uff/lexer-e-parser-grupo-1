@@ -87,7 +87,7 @@ WhiteSpace = [ \t]
 NewLine  = \r|\n|\r\n
 
 /* Line Structure */
-LogicLine = {WhiteSpace}* [^\r\n]*
+LogicLine = {WhiteSpace}* [^\r\n]+
 Comments = {WhiteSpace}* "#" [^\r\n]*
 BlankLine = {WhiteSpace}* {NewLine}
 
@@ -170,7 +170,9 @@ RightBracket = "]"
 %%
 
 <YYINITIAL> {
-  /* Line Structure */
+  /* Line Structure */                             
+  {Comments}                  { /* ignore */ }
+  {BlankLine}                 { /* ignore */ }
   {LogicLine}                 {
     // Check if the Indentation Buffer is empty. If it is not, return the first symbol in the buffer until it is empty without consuming the line.
     if (!indentBuffer.isEmpty()) {
@@ -197,24 +199,20 @@ RightBracket = "]"
       yypushback(yylength());
     }
   }
-
-  /* Comments */                                
-  {Comments}                  { /* ignore */ }
-
-  /* Blank */
-  {BlankLine}                 { /* ignore */ }
 }
 
 <SCANLINE> {
   /* Delimiters */
-  {WhiteSpace}                 { /* ignore */ }
   {NewLine}                    { yybegin(YYINITIAL); return symbol(ChocoPyTokens.NEWLINE); }
+  {Comma}                      { return symbol(ChocoPyTokens.COMMA); }
+  {Colon}                      { return symbol(ChocoPyTokens.COLON); }
 
-  /* Line Structure */
-  {Comments}                   { /* ignore */ }
-
-  /* Identifiers */
-  {Identifier}                 { return symbol(ChocoPyTokens.ID, yytext()); }
+  /* Literals */
+  {IntegerLiteral}             { return symbol(ChocoPyTokens.NUMBER, Integer.parseInt(yytext())); }
+  {StringDelimiter}            { currentString = ""; currentStringLine = yyline + 1; currentStringColumn = yycolumn + 1; yybegin(SCANSTRING); }
+  {TrueLiteral}                { return symbol(ChocoPyTokens.BOOLEAN, true); }
+  {FalseLiteral}               { return symbol(ChocoPyTokens.BOOLEAN, false); }
+  {NoneLiteral}                { return symbol(ChocoPyTokens.NONE); }
 
   /* Keywords */
   {GlobalKeyword}              { return symbol(ChocoPyTokens.GLOBAL); }
@@ -249,15 +247,6 @@ RightBracket = "]"
   {PassStatement}              { return symbol(ChocoPyTokens.PASS); }
   {ReturnStatement}            { return symbol(ChocoPyTokens.RETURN); }
 
-  /* Literals */
-  {NoneLiteral}                { return symbol(ChocoPyTokens.NONE); }
-  {TrueLiteral}                { return symbol(ChocoPyTokens.BOOLEAN, true); }
-  {FalseLiteral}               { return symbol(ChocoPyTokens.BOOLEAN, false); }
-  {IntegerLiteral}             { return symbol(ChocoPyTokens.NUMBER, Integer.parseInt(yytext())); }
-
-  /* String Literals */
-  {StringDelimiter}            { currentString = ""; currentStringLine = yyline + 1; currentStringColumn = yycolumn + 1; yybegin(SCANSTRING); }
-
   /* Logic Operators */
   {InOperator}                 { return symbol(ChocoPyTokens.IN); }
   {NotOperator}                { return symbol(ChocoPyTokens.NOT); }
@@ -280,17 +269,23 @@ RightBracket = "]"
 
   /* Delimeters */
   {Dot}                        { return symbol(ChocoPyTokens.DOT); }
-  {Comma}                      { return symbol(ChocoPyTokens.COMMA); }
-  {Colon}                      { return symbol(ChocoPyTokens.COLON); }
   {Arrow}                      { return symbol(ChocoPyTokens.ARROW); }
   {LeftParenthesis}            { return symbol(ChocoPyTokens.LPAREN); }
   {RightParenthesis}           { return symbol(ChocoPyTokens.RPAREN); }
   {LeftBracket}                { return symbol(ChocoPyTokens.LBRACKET); }
   {RightBracket}               { return symbol(ChocoPyTokens.RBRACKET); }
+
+  /* Identifiers */
+  {Identifier}                 { return symbol(ChocoPyTokens.ID, yytext()); }
+
+  /* Delimiters */
+  {WhiteSpace}                 { /* ignore */ }
+
+  /* Line Structure */
+  {Comments}                   { /* ignore */ }
 }
 
 <SCANSTRING> {
-  {StringChar}                 { currentString += yytext(); }
   {StringDelimiter}            { 
     yybegin(SCANLINE);          
     return symbolFactory.newSymbol(
@@ -298,9 +293,10 @@ RightBracket = "]"
       ChocoPyTokens.STRING,
       new ComplexSymbolFactory.Location(currentStringLine, currentStringColumn),
       new ComplexSymbolFactory.Location(yyline + 1, yycolumn + yylength()),
-      value
+      currentString
     );
   }
+  {StringChar}                 { currentString += yytext(); }
 }
 
 <<EOF>>                        { return symbol(ChocoPyTokens.EOF); }
