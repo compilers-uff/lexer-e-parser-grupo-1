@@ -176,6 +176,17 @@ action code {:
                                                  first.getLocation()[1]);
     }
 
+    /** Return the rightmost non-whitespace location in NODES, or null if NODES
+     *  is empty.  Assumes that the nodes of NODES are ordered in increasing
+     *  order of location, from left to right. */
+    ComplexSymbolFactory.Location getRight(List<? extends Node> nodes) {
+        if (nodes.isEmpty()) {
+            return null;
+        }
+        Node last = nodes.get(nodes.size()-1);
+        return new ComplexSymbolFactory.Location(last.getLocation()[2],
+                                                 last.getLocation()[3]);
+    }
 :}
 
 /* Terminal symbols (tokens returned by the lexer).  The declaration
@@ -287,7 +298,7 @@ id ::= ID:id {: RESULT = new Identifier(idxleft, idxright, id); :};
 
 /* Class Definition */
 class_definition ::= CLASS:cl id:identifier LPAREN id:identifier_root RPAREN COLON NEWLINE INDENT class_body:cb DEDENT {:
-                        RESULT = new ClassDef(clxleft, getLeft(cb), identifier, identifier_root, cb);
+                        RESULT = new ClassDef(clxleft, getRight(cb), identifier, identifier_root, cb);
                     :};
 
 class_body ::= PASS:pass NEWLINE                             {: RESULT = empty(); :}
@@ -302,7 +313,7 @@ function_definition ::= DEF:def id:identifier LPAREN list_tp:lt RPAREN COLON:c N
                             RESULT = new FuncDef(defxleft, getLeft(stmt), identifier, lt, new ClassType(cxleft, cxright, "<None>"), func_b, stmt);
                         :}
                       | DEF:def id:identifier LPAREN list_tp:lt RPAREN ARROW type:ty COLON NEWLINE INDENT function_body:func_b stmt_list:stmt DEDENT {:
-                            RESULT = new FuncDef(defxleft, getLeft(stmt), identifier, lt, ty, func_b, stmt);
+                            RESULT = new FuncDef(defxleft, getRight(stmt), identifier, lt, ty, func_b, stmt);
                         :};
 
 function_body ::=                                                 {: RESULT = empty(); :}
@@ -319,15 +330,15 @@ list_tp ::=                                        {: RESULT = empty(); :}
           | list_tp:lt COMMA typed_variable:type_v {: RESULT = combine(lt, type_v); :};
 
 /* Typed Variable */
-typed_variable ::= id:identifier COLON type:t {: RESULT = new TypedVar(identifierxleft, identifierxright, identifier, t); :};
+typed_variable ::= id:identifier COLON type:t {: RESULT = new TypedVar(identifierxleft, txright, identifier, t); :};
 
 /* Type */
-type ::= id:identifier                              {: RESULT = new ClassType(identifierxleft, identifierxright, identifier.name); :}
-       | NONE:n                                     {: RESULT = new ClassType(nxleft, nxright, n); :}
-       | TRUE:t                                     {: RESULT = new ClassType(txleft, txright, t); :}
-       | FALSE:f                                    {: RESULT = new ClassType(fxleft, fxright, f); :}
-       | STRING:s                                   {: RESULT = new ClassType(sxleft, sxright, s); :}
-       | LBRACKET LBRACKET type:t RBRACKET RBRACKET {: RESULT = new ListType(txleft, txright, t); :};
+type ::= id:identifier            {: RESULT = new ClassType(identifierxleft, identifierxright, identifier.name); :}
+       | NONE:n                   {: RESULT = new ClassType(nxleft, nxright, n); :}
+       | TRUE:t                   {: RESULT = new ClassType(txleft, txright, t); :}
+       | FALSE:f                  {: RESULT = new ClassType(fxleft, fxright, f); :}
+       | STRING:s                 {: RESULT = new ClassType(sxleft, sxright, s); :}
+       | LBRACKET type:t RBRACKET {: RESULT = new ListType(txleft, txright, t); :};
 
 /* Global and Nonlocal Variables */
 global_definition ::= GLOBAL:global id:identifier NEWLINE       {: RESULT = new GlobalDecl(globalxleft, globalxright, identifier); :};
@@ -346,10 +357,10 @@ stmt_list ::= PASS:pass NEWLINE            {: RESULT = empty(); :}
             | stmt_list:stmt_l stmt:stmt   {: RESULT = combine(stmt_l, stmt); :};
 
 stmt ::= stmt_simple:s NEWLINE                                   {: RESULT = s; :}       
-       | IF:i expr:expr COLON block:block                        {: RESULT = new IfStmt(ixleft, getLeft(block), expr, block, empty()); :}
-       | IF:i expr:expr COLON block:block elif_expression:elif_e {: RESULT = new IfStmt(ixleft, getLeft(elif_e), expr, block, elif_e); :}
-       | WHILE:w expr:expr COLON block:block                     {: RESULT = new WhileStmt(wxleft, getLeft(block), expr, block); :}
-       | FOR:f id:identifier IN expr:expr COLON block:block      {: RESULT = new ForStmt(fxleft, getLeft(block), identifier, expr, block); :};
+       | IF:i expr:expr COLON block:block                        {: RESULT = new IfStmt(ixleft, getRight(block), expr, block, empty()); :}
+       | IF:i expr:expr COLON block:block elif_expression:elif_e {: RESULT = new IfStmt(ixleft, getRight(elif_e), expr, block, elif_e); :}
+       | WHILE:w expr:expr COLON block:block                     {: RESULT = new WhileStmt(wxleft, getRight(block), expr, block); :}
+       | FOR:f id:identifier IN expr:expr COLON block:block      {: RESULT = new ForStmt(fxleft, getRight(block), identifier, expr, block); :};
 
 stmt_simple ::= PASS:pass NEWLINE             {: RESULT = null; :} 
               | expr:expr                     {: RESULT = new ExprStmt(exprxleft, exprxright, expr); :}
@@ -361,8 +372,8 @@ target_aux ::= target:t EQUAL                     {: RESULT = single(t); :}
              | target_aux:target_a target:t EQUAL {: RESULT = combine(target_a, t); :}; 
 
 /* Conditionals Definition */
-elif_expression ::= ELIF:el expr:expr COLON block:block                        {: RESULT = single(new IfStmt(elxleft, getLeft(block), expr, block, empty())); :}
-                  | ELIF:el expr:expr COLON block:block elif_expression:elif_e {: RESULT = single(new IfStmt(elxleft, getLeft(elif_e), expr, block, elif_e)); :}
+elif_expression ::= ELIF:el expr:expr COLON block:block                        {: RESULT = single(new IfStmt(elxleft, getRight(block), expr, block, empty())); :}
+                  | ELIF:el expr:expr COLON block:block elif_expression:elif_e {: RESULT = single(new IfStmt(elxleft, getRight(elif_e), expr, block, elif_e)); :}
                   | else_expression:else_e                                     {: RESULT = else_e; :};
 
 else_expression ::= ELSE COLON block:block                                     {: RESULT = block; :};
