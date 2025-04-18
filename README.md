@@ -46,26 +46,48 @@ To sync with updates upstream:
 
     git pull upstream master
 
-## Submission writeup
+## Sessão 6.4 do Enunciado: Considerações de Implementação
 
-Team member 1: Lucca Sabbatini
+### Membros do Grupo
 
-Team member 2: Renato Montini
+- Lucca Sabbatini;
+- Renato Montini;
+- Sérgio Ricardo.
 
-Team member 3: Sérgio Ricardo
+### Agradecimentos
 
-Agradecimentos aos colegas de turma Isadora Verbicário, João Pedro Mateus e João Guilherme por terem tirado uma dúvida em relação a um problema que estávamos tendo.
-E ao Github Copilot por ter explicado porque um erro de compilação estava ocorrendo.
+Agradecimentos aos colegas de turma Isadora Verbicário, João Pedro Mateus e João Guilherme por terem ajudado com a implementação da gramática do ChocoPy.
+Agradecimentos à Rohan Padhye, Koushik Sen e Paul Hilfinger da Universidade de Berkley por escreverem um ótimo manual e referência de linguagem para o ChocoPy.
+Agradecimentos à Scott Hudson e ao JFlex Team por terem escrito documentações precisas e abrangentes para as ferramentas CUP e JFlex, respectivamente.
 
-Não sabemos ao certo quantas horas foram necessárias para a realização do trabalho. Mas começamos a trabalhar no dia 05/04 e trabalhamos no projeto praticamente todos os dias desde então. Usando uma média de aproximadamente 3h/dia x 14 dias, foram utilizadas no mínimo 42 horas de trabalho.
+### Tempo de Desenvolvimento
 
-- Questões:
+Fora o tempo investido apenas na contextualicação teórica e nos estudos sobre a linguagem ChocoPy prévios ao início do desenvolvimento, estima-se que o tempo total de desenvolvimento tenha sido de aproximadamente 42 horas.
 
-1. Para a emissão de INDENTS e DEDENTS, utilizamos uma pilha, inicializada em 0 (linha 178), que guarda o nível de identação do código, e funções para contar (linhas 65 - declaração da função, e 188 - chamada da função) e emitir os tokens (linha 191 - compara o nível de identação com o valor na pilha). Nome do arquivo: ChocoPy.jflex
+Esse tempo foi calculado pensando que o primeiro commit ao repositório foi no dia 05/04/2025, que dista de 12 dias da data na qual este documento está sendo atualizado pela última vez antes da entrega do trabalho. Foi estimado um tempo investido à implementação do trabalho de 10 horas por semana útil, totalizando assim algo perto de 20 horas de trabalho.
 
-2. A nossa solução busca realizar exatamente o que é descrito na seção 3.1.5 (Identação) ao utilizar uma pilha para poder contar o nível de identação e ao emitir INDENT sempre que a identação é maior que o topo da pilha e emitir DEDENT enquanto o valor do topo for maior que o da identação da linha lida.
+### Questões
 
+#### 1. Que estratégia você usou para emitir tokens INDENT e DEDENT corretamente? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal da sua solução.
 
-3. Tivemos dois outros desafios além da identação. 
+Separamos o Lexer em dois estados principais (além de um terceiro auxiliar para processamento de strings). O estado YYINITIAL ficou responsável por analisar linhas lógicas inteiras (destarcando comentários e linhas vazias), se preocupando somente com a emissão de tokens de indentação (INDENT e DEDENT). Já o estado SCANLINE ficou responsável por analisar os lexemas dentro de cada linha lógica, descartando qualquer indentação no começo da linha.
+
+Foram definidos duas estruturas de dados para auxiliar no controle de indentação dos programas: uma pilha `indentStrack` (do tipo `Stack<Integer>`) e uma fila `indentBuffer` (do tipo `Queue<Symbol>`). A pilha é usada para controlar o nível de indentação atual, adicionando um novo nível quando um token INDENT é emitido e removendo o nível quando um token DEDENT é emitido. A fila é usada para armazenar os tokens de indentação que foram emitidos, permitindo que eles sejam processados posteriormente. Isso é necessário porque, mesmo que em alguns casos seja necessário emitir mais de um DEDENT de uma só vez, por exemplo, só é possível retornar um token para o parser por vez. Ao definir um buffer de tokens, conseguimos emitir quantos tokens forem necessários para o parser, basta adicionarmos à fila os tokens que estaríamos retornando ao parser e, ao início do processamento de cada linha, checamos se o buffer se encontra vazio. Se o buffer estiver vazio, a linha que foi consumida pelo automato é processada normalmente. Se o buffer não estiver vazio, a linha que foi consumida pelo automato é preservada para a próxima iteração (`yypushback(yylength())`) e o primeiro token do buffer é retornado ao parser.
+
+##### Estruturas de dados auxiliares (Linhas 41-43):
+
+https://github.com/compilers-uff/lexer-e-parser-grupo-1/blob/111fd2815e6dbf340186484cf62500585317580e/src/main/jflex/chocopy/pa1/ChocoPy.jflex#L41-L43
+
+##### Lógica de tratamento de indentação (Linhas 177-204):
+
+https://github.com/compilers-uff/lexer-e-parser-grupo-1/blob/111fd2815e6dbf340186484cf62500585317580e/src/main/jflex/chocopy/pa1/ChocoPy.jflex#L177-L204
+
+#### 2. Como sua solução ao item 1. se relaciona ao descrito na seção 3.1 do manual de referência de ChocoPy? (Arquivo chocopy_language_reference.pdf.)
+
+Os conceitos de Linha Física, Linha Lógica, Comentários e Linhas Vazias foram utilizados para distringuir quais linhas do programa deveriam ser levadas em consideração no tratamento de indentação. A sessão 3.1.5 Indentation foi essencial para o desenvolvimento do mecanismo, pois ela explicita exatamente o que deve ser feito para garantir a corretude dos níveis de indentação. Nosso algoritmo é apenas a tradução do comportamento descrito em linguagem natural na sessão do documento para linguagem de programação no arquivo JFlex.
+
+#### 3. Qual foi a característica mais difícil da linguagem (não incluindo identação) neste projeto? Por que foi um desafio? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal de a sua solução.
+
+Tivemos dois outros desafios além da identação.
 O primeiro foi na definição dos símbolos terminais. Inicialmente não percebemos que a ordem da declaração deles era importante e por isso estávamos tendo problemas para compilar o código e sempre recebíamos avisos que alguns símbolos não eram alcançados nunca. Utilizamos o Github Copilot para nos explicar o erro e ele nos informou que a ordem importava, então alteramos a ordem da nossa declaração para que todos os símbolos pudessem ser alcançados. Arquivo ChocoPy.jflex, a partir da linha 210.
 O segundo desafio foi com a gramática. Tivemos algumas dificuldades em reproduzir a gramática da página 15 do manual de referência do ChocoPy até perceber que precisaríamos criar uns símbolos não terminais para conseguir refazer algumas regras. Arquivo ChocoPy.cup, a partir da linha 232 (block, elif_expression e else_expression, por exemplo).
