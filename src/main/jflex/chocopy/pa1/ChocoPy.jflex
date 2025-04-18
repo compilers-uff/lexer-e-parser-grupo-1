@@ -61,7 +61,7 @@ import java.util.Iterator;
             value);
     }
    
-    /* Count the number of whole tabs (4 spaces = 1 tab) in a line. */
+    /* Count the number of whole tabs (2 spaces = 1 tab) in a line. */
     private int countIndent(String line) {
       int count = 0;
 
@@ -70,12 +70,12 @@ import java.util.Iterator;
         char ch = line.charAt(i); // Get the character at the current index
 
         if (ch == ' ') count++; // Adds 1 to the counter
-        else if (ch == '\t') count += 4 - (count % 4); // Adds the amount of remaining spaces to next tab (next multiple of 4) to the counter
+        else if (ch == '\t') count += 2 - (count % 2); // Adds the amount of remaining spaces to next tab (next multiple of 2) to the counter
         else break; // Stop counting at first non-whitespace character
       }
 
       // Return number of whole tabs.
-      return count / 4;
+      return count / 2;
     }
     
 %}
@@ -135,7 +135,7 @@ IntegerLiteral = 0 | [1-9][0-9]*
 
 /* String Literals */
 StringDelimiter = "\""
-StringChar = [^"\\] | "\\" [^"\\]
+StringChar = [^"\\] | "\\" [^"\\] | {WhiteSpace}
 
 /* Logic Operators */
 InOperator = "in"
@@ -197,9 +197,10 @@ RightBracket = "]"
       yybegin(SCANLINE);
       return symbol(ChocoPyTokens.INDENT, ""); // Add an INDENT symbol to the buffer so that multiple tokens can be returned before the line is scanned
     } else { // If the indentation level is less than the previous line, pop indentation levels until the current level is reached
-      while (indent < top && indentStack.size() > 1) {
+      while (indent < top) {
         indentStack.pop();
         indentBuffer.add(symbol(ChocoPyTokens.DEDENT, "")); // Add a DEDENT symbol to the buffer so that multiple tokens can be returned before the line is scanned
+        top = indentStack.peek(); // Get the current indentation level
       }
       yypushback(yylength());
     }
@@ -304,7 +305,7 @@ RightBracket = "]"
   {StringChar}                 { currentString += yytext(); }
 }
 
-<<EOF>>                        { return symbol(ChocoPyTokens.EOF); }
+<<EOF>>                        { if (indentStack.peek() > 0) { indentStack.pop(); return symbol(ChocoPyTokens.DEDENT, ""); }; return symbol(ChocoPyTokens.EOF); }
 
 /* Error fallback. */
 [^]                            { return symbol(ChocoPyTokens.UNRECOGNIZED); }
